@@ -118,13 +118,20 @@ Status repairCollections(OperationContext* opCtx,
                          const std::string& dbName) {
     auto colls = CollectionCatalog::get(opCtx).getAllCollectionNamesFromDb(opCtx, dbName);
 
+    LOGV2(21029, "Repairing collections", "db"_attr = dbName);
+
     for (const auto& nss : colls) {
         opCtx->checkForInterrupt();
 
         LOGV2(21027, "Repairing collection", "namespace"_attr = nss);
 
+        Status status = Status::OK();
+
+        auto list = storageGlobalParams.corruptCollectionList;
+
         auto collection = CollectionCatalog::get(opCtx).lookupCollectionByNamespace(opCtx, nss);
-        Status status = engine->repairRecordStore(opCtx, collection->getCatalogId(), nss);
+        auto validationNeeded = list.size() == 0 || std::find(list.begin(), list.end(), nss.ns()) != list.end();
+        status = engine->repairRecordStore(opCtx, collection->getCatalogId(), nss);
 
         // Need to lookup from catalog again because the old collection object was invalidated by
         // repairRecordStore.
@@ -165,7 +172,7 @@ Status repairCollections(OperationContext* opCtx,
 
         // Set options to exclude FullRecordStoreValidation because we have already validated the
         // underlying record store in the call to repairRecordStore above.
-        auto options = CollectionValidation::ValidateOptions::kFullIndexValidation;
+        auto options = validationNeeded ? CollectionValidation::ValidateOptions::kFullIndexValidation : CollectionValidation::ValidateOptions::kNoFullValidation;
 
         const bool background = false;
         status = CollectionValidation::validate(

@@ -465,6 +465,14 @@ Status storeMongodOptions(const moe::Environment& params) {
     }
 
     if (params.count("repair") && params["repair"].as<bool>() == true) {
+        if (params.count("storage.repair.corruptCollectionList")) {
+            std::vector<std::string> intermediates;
+            str::splitStringDelim(params["storage.repair.corruptCollectionList"].as<std::string>(), &intermediates, ',');
+            std::copy(intermediates.begin(),
+                      intermediates.end(),
+                      std::back_inserter(storageGlobalParams.corruptCollectionList));
+        }
+
         storageGlobalParams.upgrade = 1;  // --repair implies --upgrade
         storageGlobalParams.repair = 1;
     }

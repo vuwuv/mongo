@@ -111,6 +111,12 @@ configs:
         arg_vartype: Switch
         source: [ cli, ini ]
 
+    'storage.repair.corruptCollectionList':
+        description: 'Collection names intended for repair (comma separated collection list in `dbName.collectionName` format)'
+        short_name: corruptCollectionList
+        arg_vartype: String
+        source: [ cli ]
+
     'storage.journal.enabled':
         description: 'Enable journaling'
         short_name: journal

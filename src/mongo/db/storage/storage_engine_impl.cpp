@@ -745,10 +745,16 @@ Status StorageEngineImpl::repairRecordStore(OperationContext* opCtx,
     auto repairObserver = StorageRepairObserver::get(getGlobalServiceContext());
     invariant(repairObserver->isIncomplete());
 
-    Status status = _engine->repairIdent(opCtx, _catalog->getEntry(catalogId).ident);
-    bool dataModified = status.code() == ErrorCodes::DataModifiedByRepair;
-    if (!status.isOK() && !dataModified) {
-        return status;
+    auto list = storageGlobalParams.corruptCollectionList;
+    Status status = Status::OK();
+    bool dataModified = false;
+
+    if (list.size() == 0 || std::find(list.begin(), list.end(), nss.ns()) != list.end()) {
+        status = _engine->repairIdent(opCtx, _catalog->getEntry(catalogId).ident);
+        dataModified = status.code() == ErrorCodes::DataModifiedByRepair;
+        if (!status.isOK() && !dataModified) {
+            return status;
+        }
     }
 
     if (dataModified) {

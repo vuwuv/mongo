@@ -46,6 +46,7 @@ void StorageGlobalParams::reset() {
     dbpath = kDefaultDbPath;
     upgrade = false;
     repair = false;
+    corruptCollectionList = std::vector<std::string>();
 
     // The intention here is to enable the journal by default if we are running on a 64 bit system.
     dur = (sizeof(void*) == 8);

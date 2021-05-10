@@ -31,6 +31,7 @@
 
 #include <atomic>
 #include <string>
+#include <vector>
 
 #include "mongo/platform/atomic_proxy.h"
 #include "mongo/platform/atomic_word.h"
@@ -73,6 +74,8 @@ struct StorageGlobalParams {
     // --repair
     // Runs a repair routine on all databases.
     bool repair;
+
+    std::vector<std::string> corruptCollectionList;
 
     bool dur;  // --dur durability (now --journal)
 
